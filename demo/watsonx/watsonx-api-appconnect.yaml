@@ -1,0 +1,303 @@
+$integration: http://ibm.com/appconnect/integration/v2/integrationFile
+integration:
+  type: api
+  trigger-interfaces:
+    trigger-interface-1:
+      triggers:
+        submitChatRequest:
+          assembly:
+            $ref: '#/integration/assemblies/assembly-1'
+          input-context:
+            data: ChatRequest
+          output-context:
+            data: ChatResponse
+      options:
+        resources:
+          - business-object: ChatRequest
+            model:
+              $ref: '#/models/ChatRequest'
+            triggers:
+              submit: submitChatRequest
+          - business-object: ChatResponse
+            model:
+              $ref: '#/models/ChatResponse'
+            triggers: {}
+      type: api-trigger
+  action-interfaces:
+    action-interface-1:
+      type: api-action
+      business-object: request
+      connector-type: http
+      account-name: watsonx
+      actions:
+        INVOKE: {}
+  assemblies:
+    assembly-1:
+      assembly:
+        execute:
+          - set-variable:
+              name: Set variable
+              map:
+                $map: http://ibm.com/appconnect/map/v1
+                customSchemas:
+                  properties.`variable`:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                      content:
+                        type: string
+                input:
+                  - variable: Request
+                    $ref: '#/trigger/payload'
+                  - variable: flowDetails
+                    $ref: '#/flowDetails'
+                mappings:
+                  - variable:
+                      mappings:
+                        - content:
+                            template: '{{$Request.prompt}}'
+                        - role:
+                            template: user
+          - set-variable:
+              name: Set variable 2
+              map:
+                $map: http://ibm.com/appconnect/map/v1
+                customSchemas:
+                  properties.`variable`:
+                    type: object
+                    properties:
+                      model_id:
+                        type: string
+                      messages:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            role:
+                              type: string
+                            content:
+                              type: string
+                      parameters:
+                        type: object
+                        properties:
+                          decoding_method:
+                            type: string
+                          repetition_penalty:
+                            type: number
+                          stop_sequences:
+                            type: array
+                            items:
+                              type: string
+                          include_stop_sequence:
+                            type: boolean
+                          min_new_tokens:
+                            type: number
+                          max_new_tokens:
+                            type: number
+                      moderations:
+                        type: string
+                input:
+                  - variable: Request
+                    $ref: '#/trigger/payload'
+                  - variable: Setvariable
+                    $ref: '#/node-output/Set variable/response/payload'
+                  - variable: flowDetails
+                    $ref: '#/flowDetails'
+                mappings:
+                  - variable:
+                      mappings:
+                        - messages:
+                            foreach:
+                              input: '$Setvariable.variable '
+                              iterator: messagesItem
+                              mappings:
+                                - content:
+                                    template: '{{$messagesItem.content}}'
+                                - role:
+                                    template: '{{$messagesItem.role}}'
+                        - model_id:
+                            template: '{{$Request.model}}'
+                        - parameters:
+                            mappings:
+                              - decoding_method:
+                                  template: greedy
+                              - include_stop_sequence:
+                                  expression: 'false'
+                              - max_new_tokens:
+                                  expression: '1024'
+                              - min_new_tokens:
+                                  expression: '1'
+                              - repetition_penalty:
+                                  expression: '1.05'
+                              - stop_sequences:
+                                  expression: '["<|endoftext|>"]'
+          - custom-action:
+              name: HTTP Invoke method
+              target:
+                $ref: '#/integration/action-interfaces/action-interface-1'
+              action: INVOKE
+              map:
+                customSchemas:
+                  properties.`requestHeaders`:
+                    type: object
+                    properties:
+                      Authorization:
+                        type: string
+                      Content-Type:
+                        type: string
+                      Accept:
+                        type: string
+                mappings:
+                  - method:
+                      template: POST
+                  - requestBody:
+                      template: '{{$Setvariable2.variable}}'
+                  - requestHeaders:
+                      mappings:
+                        - Accept:
+                            template: application/json
+                        - Authorization:
+                            template: PLACEHOLDER FOR CREDENTIALS
+                        - Content-Type:
+                            template: application/json
+                  - url:
+                      template: PLACEHOLDER FOR API URL
+                $map: http://ibm.com/appconnect/map/v1
+                input:
+                  - variable: Request
+                    $ref: '#/trigger/payload'
+                  - variable: Setvariable
+                    $ref: '#/node-output/Set variable/response/payload'
+                  - variable: Setvariable2
+                    $ref: '#/node-output/Set variable 2/response/payload'
+                  - variable: flowDetails
+                    $ref: '#/flowDetails'
+          - parse:
+              name: JSON Parser Parse
+              parse-format: json
+              source:
+                template: '{{$HTTPInvokemethod.responseBody}}'
+                input:
+                  - variable: Request
+                    $ref: '#/trigger/payload'
+                  - variable: Setvariable
+                    $ref: '#/node-output/Set variable/response/payload'
+                  - variable: Setvariable2
+                    $ref: '#/node-output/Set variable 2/response/payload'
+                  - variable: HTTPInvokemethod
+                    $ref: '#/node-output/HTTP Invoke method/response/payload'
+                  - variable: HTTPInvokemethodMetadata
+                    $ref: '#/node-output/HTTP Invoke method/response'
+                  - variable: flowDetails
+                    $ref: '#/flowDetails'
+              sample-data: ''
+              output-schema:
+                $schema: http://json-schema.org/draft-04/schema#
+                type: object
+                properties:
+                  id:
+                    type: string
+                  model_id:
+                    type: string
+                  created_at:
+                    type: string
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        generated_text:
+                          type: string
+                        generated_token_count:
+                          type: number
+                        input_token_count:
+                          type: number
+                        stop_reason:
+                          type: string
+                  conversation_id:
+                    type: string
+                title: Parsed JSON
+          - response:
+              name: response-1
+              reply-maps:
+                - title: ChatRequest successfully add custom operation
+                  status-code: 200
+                  map:
+                    mappings:
+                      - model:
+                          template: '{{$Request.model}}'
+                      - prompt:
+                          template: '{{$Request.prompt}}'
+                      - response:
+                          template: '{{$JSONParserParse.results.generated_text}}'
+                    $map: http://ibm.com/appconnect/map/v1
+                    input:
+                      - variable: Request
+                        $ref: '#/trigger/payload'
+                      - variable: Setvariable
+                        $ref: '#/node-output/Set variable/response/payload'
+                      - variable: Setvariable2
+                        $ref: '#/node-output/Set variable 2/response/payload'
+                      - variable: HTTPInvokemethod
+                        $ref: '#/node-output/HTTP Invoke method/response/payload'
+                      - variable: HTTPInvokemethodMetadata
+                        $ref: '#/node-output/HTTP Invoke method/response'
+                      - variable: JSONParserParse
+                        $ref: '#/node-output/JSON Parser Parse/response/payload'
+                      - variable: flowDetails
+                        $ref: '#/flowDetails'
+                  input: []
+  name: watsonx
+models:
+  ChatRequest:
+    name: ChatRequest
+    properties:
+      prompt:
+        required: false
+        id: true
+        type: string
+      model:
+        required: false
+        id: false
+        type: string
+    plural: ChatRequest
+    description: ' '
+    operations:
+      submit: '#/integration/assemblies/assembly-1'
+    methods:
+      submit:
+        name: submit
+        display:
+          name: Submit prompt
+        accessType: WRITE
+        accepts:
+          - arg: data
+            type: ChatRequest
+            http:
+              source: body
+        returns:
+          arg: data
+          type: ChatResponse
+          root: true
+        http:
+          verb: POST
+          path: /submit
+  ChatResponse:
+    name: ChatResponse
+    properties:
+      prompt:
+        required: false
+        id: true
+        type: string
+      model:
+        required: false
+        id: false
+        type: string
+      response:
+        required: false
+        id: false
+        type: string
+    plural: ChatResponse
+    description: ' '
+    operations: {}

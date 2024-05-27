@@ -1,0 +1,13 @@
+These figures describe trading for a single tech stock for a 1 hour period between 2024.05.17 15:00:00 and 2024.05.17 16:00:00.
+
+The number of stocks sold was 523637
+Trading started at the start of the hour at 168.49 and finished the hour at 169.07
+The highest price during the hour was 169.11
+The lowest price was during the hour was 168.4
+The average (mean) price was 168.7
+The population variance was 0.021
+The sample variance was 0.021
+The population standard deviation was 0.145
+The sample standard deviation was 0.146
+
+What can we tell about the trading from this data? Generate an explanation suitable for someone who is not familiar with financial or statistical jargon.

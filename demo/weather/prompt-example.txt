@@ -1,0 +1,17 @@
+Measurements from a weather station in Compton, GB were taken every two minutes between 2024.05.26 13:00:00 and 2024.05.26 14:00:00
+
+Temperature ranged between 15.6 and 19.2 degrees Celsius. The average (mean) temperature was 17.7 degrees. The population standard deviation of temperature measurements was 0.241
+
+Pressure ranged between 1010 and 1010 millibars. The average (mean) pressure was 1010 millibars. The population standard deviation of pressure measurements was 0
+
+Humidity ranged between 67 and 72 percent. The average (mean) humidity was 69 percent. The population standard deviation of humidity measurements was 1
+
+Wind speed ranged between 7.2 and 8.2 metres per second. The average (mean) wind speed was 8.2 metres per second. The population standard deviation of wind speed measurements was 0.257
+
+Cloudiness measurements (as a percentage of sky covered) ranged between 40 and 40 percent. The average (mean) cloudiness was 40 percent. The population standard deviation of cloudiness measurements was 0
+
+Generate a short, non-technical, easy to understand explanation of these weather measurements for this 1 hour period. Explain what the measurements indicate, such as by describing how it would have felt to someone outside during this time.
+
+Use language that is suitable for a weather report in a newspaper.
+
+Avoid using technical or statistical jargon. Do not include statistical terms such as population standard deviation in your summary.
